@@ -7,9 +7,6 @@
  *
  *implemented by:
  *Ohadgzit
- *id:308274570
- *noamwolf
- *id:318556206
  */
 
 public class WAVLTree {
