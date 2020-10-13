@@ -5,14 +5,22 @@
  * An implementation of a WAVL Tree.
  * (Haupler, Sen & Tarajan ‘15)
  *
+ *implemented by:
+ *Ohadgzit
+ *id:308274570
+ *noamwolf
+ *id:318556206
  */
 
 public class WAVLTree {
 
 	
-WAVLNode root;
-static WAVLNode EXTLeaf;
+private WAVLNode root=null;
+private static WAVLNode EXTLeaf;
 
+  /**
+   * creating a new WAVlTree with external leaf
+   */
   public WAVLTree () {
 	EXTLeaf = new WAVLNode(-1);
   }
@@ -32,7 +40,29 @@ static WAVLNode EXTLeaf;
 		  return false; // to be replaced by student code
 	  }
   }
+/**
+ * 	
+ * @param k the of the node searched
+ * @return the node with the key k if one exist and null otherwise
+ */
+  private WAVLNode node_Search(int k){
+	  WAVLNode cur = root;                                          
+      while (cur != null && cur.getKey() != -1) {
+      	if (k == cur.getKey()) {
+      		return cur;
+      	}
+      	if (k > cur.getKey()) {
+      		cur = cur.getRight();
+      	}
+      	else {
+      		if(k < cur.getKey()) {
+      			cur = cur.getLeft();
+      		}
+      	}
+      }
+      return null;
 	  
+  }
 
  /**
    * public String search(int k)
@@ -42,22 +72,10 @@ static WAVLNode EXTLeaf;
    */
   public String search(int k)
   {
-        WAVLNode cur = root;                                          
-        while (cur != null && cur.getKey() != -1) {
-        	if (k == cur.getKey()) {
-        		return cur.getValue();
-        	}
-        	if (k > cur.getKey()) {
-        		cur = cur.getRight();
-        	}
-        	else {
-        		if(k < cur.getKey()) {
-        			cur = cur.getLeft();
-        		}
-        	}
+        if(node_Search(k)==null) {
+        	return null;
         }
-        return null;
-        
+        return node_Search(k).getValue();
   }
 
 
@@ -86,7 +104,7 @@ static WAVLNode EXTLeaf;
 				   return -1;
 			   }
 			   if (k > cur.getKey()) {
-				   if (cur.getRight().getKey() == -1) {
+				   if (cur.getRight().rank == -1) {
 					   cur.addLeaf(k,i,"right");
 					   inserted = true;
 				   }
@@ -96,7 +114,7 @@ static WAVLNode EXTLeaf;
 			   }
 			   else {
 				   if(k<cur.getKey()) {
-					   if (cur.getLeft().getKey() == -1) {
+					   if (cur.getLeft().rank==-1) {
 						   cur.addLeaf(k, i, "left");
 						   inserted = true;
 					   }
@@ -109,11 +127,11 @@ static WAVLNode EXTLeaf;
 		   return insertRebalance (cur);    /*cur now is the parent of the inserted node*/
 	   }
    }	
-   	     /**getting the parent of the inserted node
-   	      * making the rebalance procces
-   	      * updating subtreesize of all the tree
-   	      * return the number of rebalance operations            */
-		  public int insertRebalance (WAVLNode cur) {		   		   
+   	     /**making the rebalance procces
+   	      * updating subtreesize of all the nodes in the tree
+   	      * @return the number of rebalance operations
+   	      * @param cur the parent of the inserted node*/
+		  private int insertRebalance (WAVLNode cur) {		   		   
 		   if (cur.rank == 0){                                      /* rank problem created - parent is a leaf*/
 			   int rankDifference;
 			   int numOfOperations =0;
@@ -123,7 +141,7 @@ static WAVLNode EXTLeaf;
 				   if (rotated == false) {                 /*if false: checking if rotate needed, if true: keep climbing to update subrtreesizes*/
 				   /*boolean rotated = false;*/                        /*checking if rotated */
 				   rankDifference = cur.rankDifference();
-				   if (Math.abs(rankDifference) == 1) {             /*case 1*/
+				   if (Math.abs(rankDifference) == 1 && (cur.rank == cur.left.rank || cur.rank == cur.right.rank) ) {             /*case 1*/
 					   cur.rank++;
 					   numOfOperations ++;
 				   }
@@ -133,26 +151,34 @@ static WAVLNode EXTLeaf;
 						   sonRankDifference = cur.left.rankDifference();
 						   if (sonRankDifference == -1) {                   /*case 2 rotate right*/
 							   cur = cur.rotate("right");                   /*cur = new root of subtree*/
+							   cur.right.rank--;
 							   rotated = true;
-							   numOfOperations +=1;
+							   numOfOperations +=2;
 						   }
 						   if (sonRankDifference == 1) {		           /* case 3 double rotate right*/
-							   cur = cur.doublerotate("right");            /*cur = new root of subtree   ---- need to check*/
+							   cur = cur.doublerotate("right");            /*cur = new root of subtree*/
+							   cur.rank++;
+							   cur.left.rank--;
+							   cur.right.rank--;
 							   rotated = true;
-							   numOfOperations +=3;       
+							   numOfOperations +=5;       
 						   }
 					   }
 					   if(rankDifference == 2) {                           /*case 2 or case 3*/
 						   sonRankDifference = cur.right.rankDifference();
 						   if (sonRankDifference == 1) {                  /*case 2 rotate left*/
 						   	   cur = cur.rotate("left");                    /*cur = new root of subtree*/
+						   	   cur.left.rank--;
 						   	   rotated = true;
-						   	   numOfOperations +=1; 
+						   	   numOfOperations +=2; 
 						   }
 						   if(sonRankDifference == -1) {                  /*case 3 double rotate left*/
-							   cur = cur.doublerotate("left");             /*cur = new root of subtree  --- need to check*/
+							   cur = cur.doublerotate("left");             /*cur = new root of subtree*/
+							   cur.rank++;
+							   cur.left.rank--;
+							   cur.right.rank--;
 							   rotated = true;
-							   numOfOperations +=3;
+							   numOfOperations +=5;
 						   }
 					   }
 					   if (rotated == true) {
@@ -168,16 +194,195 @@ static WAVLNode EXTLeaf;
 			   return numOfOperations;
 		   }
 		   else {
+			   while(cur!=null) {
+			   cur.subTreeSize++;
+			   cur = cur.parent;
+			   }
 			   return 0; /*parent of the inserted node is not a leaf,  no problem was created*/
 		   }
 		  }
 
+  /**
+   * delete wavltree node.
+   * called after the original to_del node and its succesor have been switched
+   * @param to_del
+   * @param isFollow
+   */
+   private void reg_delete_switched(WAVLNode to_del, boolean isFollow) {
+	   if (isFollow == true) {    /*to_del amd replacing are parent and son*/
+		   if(!(to_del.left.isInnerNode() || to_del.right.isInnerNode())){   
+				  to_del.parent.right=EXTLeaf;                                /*to_del is a leaf*/
+				  this.delReb(to_del.parent, "leaf");
+		   }
+		   else if(!(to_del.left.isInnerNode())) {    /*to del have right son*/
+			   to_del.parent.right=to_del.right;
+			   to_del.right.parent = to_del.parent;
+			   this.delReb(to_del.parent, "unary");
+		   }
+		   
+	   }
+	   else {                         
+		   if(!(to_del.left.isInnerNode() || to_del.right.isInnerNode())){             /*to_del is a leaf*/    
+			   to_del.parent.left = EXTLeaf;
+			   this.delReb(to_del.parent, "leaf");
+		   }
+		   else if(!(to_del.left.isInnerNode())) {    /*to_del have right son */
+			   to_del.parent.left=to_del.right;
+			   to_del.right.parent = to_del.parent;
+			   this.delReb(to_del.parent, "unary");
+		   }
+		   
+	   }
+   }
+   /**
+    * changing between do_del and its succesor
+    * @param to_del
+    * @param replacing = successor
+    * @return true if and only if the were parent and son
+    */
+   private boolean change (WAVLNode to_del, WAVLNode replacing) {
+	   boolean isFollow = false;
+	   if (to_del.right == replacing) {
+		   isFollow = true;
+	   }
+	   WAVLNode left = replacing.left;
+	   WAVLNode right = replacing.right;
+	   WAVLNode parent = replacing.parent;
+	   int rank = replacing.rank;
+	   int size = replacing.subTreeSize;
+	   replacing.left = to_del.left;
+	   replacing.left.parent = replacing;
+	   replacing.right = to_del.right;
+	   replacing.subTreeSize = to_del.subTreeSize;
+	   replacing.rank = to_del.rank;
+	   if(to_del.parent != null) {
+		   replacing.parent = to_del.parent;
+		   if(to_del.parent.right.getKey() == to_del.getKey()) {
+			   to_del.parent.right = replacing;
+		   }
+		   else {
+			   to_del.parent.left = replacing;
+		   }
+	   }
+	   else {
+		   root = replacing;
+		   replacing.parent = null;
+	   }
+	   to_del.left = left;
+	   to_del.right = right;
+	   to_del.subTreeSize= size;
+	   to_del.rank = rank;
+	   if (isFollow == true) {
+		   to_del.parent = replacing;
+		   replacing.right = to_del;
+	   }
+	   else {
+		   to_del.parent = parent;
+		   to_del.parent.left = to_del;
+		   replacing.right.parent = replacing;
+	   }
+	   return isFollow;
+   }
    
-
-   
-   
-   
-   
+ /**private int delReb(WAVLNode cur, String status)
+  *    
+  * rebalances the tree and updutes to subTreesizes after deletion  
+  * @param cur the parent the deleted node
+  * @param status the status of the deleted node (leaf or unary)
+  * @return the number of rebalance operations done
+  */
+    int delReb(WAVLNode cur, String status) {
+	   boolean finished = false;
+	   boolean rotated = false;
+	   String stp;
+	   int numOfOp= 0 ;
+	   while (cur != null) {
+		   cur.subTreeSize--;
+		   if (finished == false) {
+			   stp = cur.caseFirstFind(status);
+			   switch (stp) {
+			   case ("finished"):
+				   finished = true;
+				   break;
+			   case ("demote"):
+				   cur.rank--;
+		   	   	   numOfOp++;
+		   	   	   break;
+			   case ("doubleDemoteright"):
+				   cur.rank--;
+		   	   	   cur.right.rank--;
+		   	   	   numOfOp +=2;
+		   	   	   break;
+			   case ("doubleDemoteleft"):
+				   cur.rank--;
+		   	   	   cur.left.rank--;
+		   	   	   numOfOp+= 2 ;
+		   	   	   break;
+			   case ("rotateRight"):
+				   cur = cur.rotate("right");
+			   	   cur.rank++;
+			   	   if (cur.right.left.isInnerNode() == true || cur.right.right.isInnerNode() == true || cur.right.rank != 2) {
+			   		cur.right.rank--;
+			   	   }
+			   	   else {
+			   		cur.right.rank-=2; 
+			   	   }
+		       	   numOfOp+=3;
+		       	   finished = true;
+		       	   rotated = true;
+		       	   break;
+			   case ("rotateLeft"):
+				   cur = cur.rotate("left");
+			   	   cur.rank++;
+		   	       if (cur.left.left.isInnerNode() == true || cur.left.right.isInnerNode() == true || cur.left.rank != 2) {
+		   	    	cur.left.rank--;
+		   	       }
+		   	       else {
+		   	    	cur.left.rank-=2; 
+		   	       }
+		       	   numOfOp+=3;
+		       	   finished = true;
+		       	   rotated = true;
+		       	   break;
+			   case("doubleRotateRight"):
+				   cur = cur.doublerotate("right");
+			   	   cur.rank+=2;
+			   	   if(cur.rank-cur.right.rank==0) {
+			   		cur.right.rank-=2;			   	   }
+			   	   else {
+				   	cur.right.rank--;
+			   	   }
+			   	   cur.left.rank--;
+		       	   numOfOp+=4;
+		       	   finished = true;
+		       	   rotated = true;
+		       	   break;
+			   case("doubleRotateLeft"):
+				   cur = cur.doublerotate("left");
+			   	   cur.rank+=2;
+			   	   if(cur.rank-cur.left.rank==0) {
+			   		cur.left.rank-=2;   
+			   	   }
+			   	   else {
+				   	cur.left.rank--;
+			   	   }
+			   	   cur.right.rank--;
+		       	   numOfOp+=4;
+		       	   finished = true;
+		       	   rotated = true;
+		       	   break;
+			   }
+			   if (rotated == true) {
+				   if (cur.left == root || cur.right == root) {    /*updating root if the parent was the tree root*/
+					   root = cur;
+				   }						   
+			   }
+		   }
+		   cur = cur.parent;
+		   status = "rebalance";
+	   }
+	   return numOfOp;
+   }
    
    
    /**
@@ -190,7 +395,78 @@ static WAVLNode EXTLeaf;
    */
    public int delete(int k)
    {
-           return 42;   // to be replaced by student code
+	   WAVLNode to_del=node_Search(k);
+	   if(!this.empty()) {
+		   if(this.size()==1) {
+			   root=null;
+		   }
+		   else if(to_del!=null) {
+				  String side=null;
+				  if(to_del.parent!=null) {
+				   	if(to_del.parent.key>to_del.key) {            
+					   side="left";                               
+				   	}
+				   	else {
+				   		side="right";
+				   	}
+				   }
+				if(!(to_del.left.isInnerNode() || to_del.right.isInnerNode())){
+					switch(side) {
+					case("right"):
+						to_del.parent.right=EXTLeaf;
+						break;
+					case("left"):
+						to_del.parent.left=EXTLeaf;
+						break;
+					}
+					return this.delReb(to_del.parent, "leaf");
+				}  
+				else if(!(to_del.left.isInnerNode())) {
+					to_del.right.parent=to_del.parent;
+					if(to_del.parent!=null) {
+						switch(side) {
+						case("right"):
+							to_del.parent.right=to_del.right;
+							break;
+						case("left"):
+							to_del.parent.left=to_del.right;
+							break;
+						}
+						to_del.right.parent = to_del.parent;
+					}
+					else {
+						to_del.right.parent=null;
+						root=to_del.right;
+					}
+					return this.delReb(to_del.parent, "unary");
+					}
+					else if(!(to_del.right.isInnerNode())) {
+					to_del.right.parent=to_del.parent;
+					if(to_del.parent!=null) {
+						switch(side) {
+						case("right"):
+							to_del.parent.right=to_del.left;
+							break;
+						case("left"):
+							to_del.parent.left=to_del.left;
+							break;
+						}
+						to_del.left.parent = to_del.parent;
+					}
+					else {
+						to_del.left.parent=null;
+						root=to_del.left;
+					}
+					return this.delReb(to_del.parent, "unary");
+					}
+				else {
+					WAVLNode replacing=to_del.successor();
+					boolean isFollow = this.change(to_del, replacing);   /*checikng if succesor and to_del are parent and son*/
+					this.reg_delete_switched(to_del,isFollow);
+					}
+		   		}
+			}
+	   return 0;
    }
 
    /**
@@ -201,7 +477,14 @@ static WAVLNode EXTLeaf;
     */
    public String min()
    {
-           return "42"; // to be replaced by student code
+           if(this.empty()) {
+        	   return null;
+           }
+           WAVLNode min_node=this.root;
+           while(min_node.left!=null && min_node.left.rank!=-1) {
+        	   min_node=min_node.left;
+           }
+           return min_node.value;
    }
 
    /**
@@ -212,9 +495,18 @@ static WAVLNode EXTLeaf;
     */
    public String max()
    {
-           return "42"; // to be replaced by student code
+	   if(this.empty()) {
+    	   return null;
+       }
+       WAVLNode max_node=this.root;
+       while(max_node.right!=null && max_node.right.rank!=-1) {
+    	   max_node=max_node.right;
+       }
+       return max_node.value;
    }
 
+   
+   static private int in_order_ind=0;//the index in the in order passes in keysToArray() and infoToArray()
    /**
    * public int[] keysToArray()
    *
@@ -223,8 +515,14 @@ static WAVLNode EXTLeaf;
    */
    public int[] keysToArray()
    {
-        int[] arr = new int[42]; // to be replaced by student code
-        return arr;              // to be replaced by student code
+        if(this.empty()) {
+        	return new int[0];
+        }
+        int[] arr=new int[this.size()];
+        in_order_ind=0;
+        this.root.ToArrayHelper(arr,null,true);
+        return arr;
+        
    }
 
    /**
@@ -236,8 +534,13 @@ static WAVLNode EXTLeaf;
    */
    public String[] infoToArray()
    {
-        String[] arr = new String[42]; // to be replaced by student code
-        return arr;                    // to be replaced by student code
+	   if(this.empty()) {
+       	return new String[0];
+       }
+       String[] arr=new String[this.size()];
+       in_order_ind=0;
+       this.root.ToArrayHelper(null,arr,false);
+       return arr;
    }
 
    /**
@@ -248,7 +551,10 @@ static WAVLNode EXTLeaf;
     */
    public int size()
    {
-           return 42; // to be replaced by student code
+           if(this.empty()) {
+        	   return 0;
+           }
+           return this.root.subTreeSize;
    }
    
    
@@ -260,7 +566,10 @@ static WAVLNode EXTLeaf;
     */
    public WAVLNode getRoot()
    {
-           return null;
+           if(this.empty()) {
+        	   return null;
+           }
+           return this.root;
    }
      /**
     * public int select(int i)
@@ -273,7 +582,20 @@ static WAVLNode EXTLeaf;
     */   
    public String select(int i)
    {
-           return null; 
+           if(i<=0 || this.empty() || i>this.size()) {
+        	   return null;
+           }
+           WAVLNode curr_node=this.root;
+           while(curr_node.left.getSubtreeSize()!=i-1) {
+        	   if(curr_node.left.getSubtreeSize()>i-1) {
+        		   curr_node=curr_node.left;
+        	   }
+        	   else {
+        		   i-=(curr_node.left.getSubtreeSize()+1);
+        		   curr_node=curr_node.right;
+        	   }
+           }
+           return curr_node.value;
    }
 
    /**
@@ -281,19 +603,30 @@ static WAVLNode EXTLeaf;
    */
   public class WAVLNode{
 	  
-	  			String value ;
-	  			int key;
-	  			WAVLNode right;
-	  			WAVLNode left;
-	  			WAVLNode parent;
-	  			int subTreeSize;
-	  			int  rank;
+	  			private String value ;
+	  			private int key;
+	  			private WAVLNode right;
+	  			private WAVLNode left;
+	  			private WAVLNode parent;
+	  			private int subTreeSize;
+	  			private int  rank;
 	  			
-	  			public WAVLNode (int rank) {
+	  			
+	  			/**
+	  			 * constructor for the external leaf
+	  			 * @param rank
+	  			 */
+	  			private WAVLNode (int rank) {
 	  				this.rank = rank;
 	  			}
-
-	  			public WAVLNode(int key, String value , int rank, int subTreeSize) {
+	  			/**
+	  			 * creating a new wavlnode
+	  			 * @param key
+	  			 * @param value
+	  			 * @param rank
+	  			 * @param subTreeSize
+	  			 */
+	  			private WAVLNode(int key, String value , int rank, int subTreeSize) {
 	  				this.key = key;
 	  				this.value = value;
 	  				this.rank = rank;
@@ -301,7 +634,14 @@ static WAVLNode EXTLeaf;
 	  				
 	  				
 	  			}
-	  		   public void addLeaf(int k, String value, String side) {
+	  			/**
+	  			 * side have to be "left" or "right"
+	  			 * creating a new wavlnode leaf 
+	  			 * @param k
+	  			 * @param value
+	  			 * @param side
+	  			 */
+	  		   private void addLeaf(int k, String value, String side) {
 	  			   if (side.equals("right") == true) {
 	  				   right = new WAVLNode(k,value,0,1);
 	  				   right.parent = this;
@@ -318,17 +658,23 @@ static WAVLNode EXTLeaf;
 	  				   left.left = EXTLeaf;
 	  				   }
 	  			   }
-	  			   
-	  			   
-	  				   
-	  				   
+
 	  			   
 	  		   }
-	  		   public int rankDifference() {
+	  		   /**
+	  		    * 
+	  		    * @return the rank differences of the node
+	  		    */
+	  		 private int rankDifference() {
 	  			   return (rank-left.rank) -(rank-right.rank);
 	  		   }
-	  		   
-	  		   public WAVLNode rotate(String side) {
+	  		   /**
+	  		    * this. is  the root of the subtree
+	  		    * @param side = right if rotate to the right
+	  		    * @param delete = true if rotate after deleting
+	  		    * @return
+	  		    */
+	  		private WAVLNode rotate(String side) {  
 	  			   WAVLNode newParent;
 	  			   if (side.equals("right")) {       /*rotating to the right*/
 	  				   this.rebalanceSizeUpdate("right");
@@ -348,6 +694,7 @@ static WAVLNode EXTLeaf;
 	  				   else {
 	  				   newParent.parent = null;
 	  				   }
+	  				   
 	  			   }
 	  			   else {      /*rotating to the left*/
 	  				   this.rebalanceSizeUpdate("left");
@@ -367,14 +714,18 @@ static WAVLNode EXTLeaf;
 	  				   else {
 	  				   newParent.parent = null;
 	  				   }
-	  				   }   
+	  			   }   
 	  			   parent = newParent;
-	  			   rank--;
 	  			   return newParent;
 	  			   
 	  		   }
-	  		   
-	  		   public WAVLNode doublerotate(String side) {
+	  		   /**
+	  		    * make a double rotation to given side
+	  		    * return the new subtree parent
+	  		    * @param side ="left" or "right"
+	  		    * @return
+	  		    */
+	  		private WAVLNode doublerotate(String side) {
 	  			   if (side.equals("right")){
 	  				   left.rotate("left");
 	  				   this.rotate("right");
@@ -383,17 +734,19 @@ static WAVLNode EXTLeaf;
 	  				   right.rotate("right");
 	  				   this.rotate("left");
 	  			   }
-	  			   parent.rank++;
 	  			   return parent;    /*return the new root of the subtree*/
 	  		   }
 	  		   /**
 	  		    * getting a side of balancing
 	  		    * must called before the rotation
 	  		    * updating the sizes of the nodes in the subtree
-	  		    * @param cur
-	  		    * @param side
+	  		    * @param side the side of the rotation
 	  		    */
-	  		   public void rebalanceSizeUpdate (String side) {
+	  		/**
+	  		 * update the sizes of the nodes that got rotated
+	  		 * @param side = "right" or "left"
+	  		 */
+	  		private void rebalanceSizeUpdate (String side) {
 	  			   if (side.equals("right")) {
 	  				   this.subTreeSize = right.subTreeSize+left.right.subTreeSize +1;
 	  				   left.subTreeSize = left.left.subTreeSize + this.subTreeSize +1;
@@ -403,8 +756,143 @@ static WAVLNode EXTLeaf;
 	  				   right.subTreeSize= right.right.subTreeSize +this.subTreeSize +1;
 	  			   }
 	  		   }
-	  		   
-	  
+	  		/**
+	  		 * private void ToArrayHelper(int[] int_arr,String str_arr[],boolean is_int)
+	  		 * 
+	  		 * does recursive in order traversal of the subtree in which for each node inserting either the key to the int array 
+	  		 * or info to the string array in in_order_ind position and the increments the in in_order_ind by 1.
+	  		 * @param int_arr  if is_int=true elements with an index between in_order_ind and in_order_ind+subTreeSize-1
+	  		 *   will become the keys of sub tree in sorted order otherwise the array will remain unchanged
+	  		 * @param str_arr if is_int=false elements with an index between in_order_ind and in_order_ind+subTreeSize-1
+	  		 *   will become the info of sub tree in sorted key order otherwise the array will remain unchanged
+	  		 * @param is_int if true the method will change the int array and if false
+	  		 * the method will change the string array 
+	  		 */
+	  		private void ToArrayHelper(int[] int_arr,String str_arr[],boolean is_int) {//if is_int==true the method will change the int array otherwise the method will change the String array.  
+	  			if(this!=null && this.rank!=-1) {
+	  				this.left.ToArrayHelper(int_arr,str_arr,is_int);
+	  				if(is_int) {
+	  					int_arr[in_order_ind]=this.key;
+	  				}
+	  				else {
+	  					str_arr[in_order_ind]=this.value;
+	  				}
+	  				in_order_ind++;
+	  				this.right.ToArrayHelper(int_arr,str_arr,is_int);
+	  			}
+	  	   }
+	  		/**
+	  		 * 
+	  		 * @return the succesor of the node
+	  		 */
+	  		private WAVLNode successor () {
+            	WAVLNode cur = this;
+            	if (this.right.rank == -1 ) {
+            		while (cur.parent != null && cur.parent.right.getKey() == cur.getKey()) {
+            			cur = cur.parent;
+            		}
+            		if (cur.parent == null) {
+            			return null;
+            		}
+            		return cur.parent;	
+            	}
+            	else {
+            		cur = cur.right;
+            		while (cur.left.rank != -1) {
+            			cur = cur.left;
+            		}
+            		return cur;		
+            	}
+            }
+	  		/**getting the node needed to be checked for rebalancing
+	  		 * find the rebalance case after delete
+	  		 * @param status = "leaf" or "unary"
+	  		 * @return rebalance step needed
+	  		 */
+	  		private String caseFirstFind(String status) {
+	  			int leftDif = this.rank-this.left.rank;
+	  			int rightDif = this.rank - this.right.rank;
+	  			if (status.equals("leaf")) {
+	  				if (leftDif == 2 && rightDif == 2) {   /*2nd leaf case*/
+	  					return "demote";   
+	  				}
+	  				if (this.rank == 1) {                  /*1st leaf case*/
+	  					return "finished";
+	  				}
+	  				return this.caseFind();                 /*3rd leaf case */
+	  			}
+	  			if (status.equals("unary")){
+	  				if (leftDif == 2 && rightDif == 2) {
+	  					return "finished";
+	  				}
+	  				if ((leftDif == 2 && rightDif == 1) || (leftDif == 1 && rightDif == 2 )) {
+	  					return "finished";
+	  				}
+	  				return this.caseFind();
+	  			}
+	  			if (leftDif == 3 || rightDif == 3)
+	  				return this.caseFind();  
+	  			else 
+	  				return "";
+	  		}
+	  		
+	
+	  			/**
+	  			 * getting the node needed to be checked por rebalancing;
+	  			 * 
+	  			 * 
+	  			 * 
+	  			 * @return  next step of rebalancing demote , double demote+side, rotate, double rotate
+	  			 */
+	  		private String caseFind () {
+	  			int leftDif = this.rank-this.left.rank;
+	  			int rightDif = this.rank - this.right.rank;
+	  			if (Math.abs(leftDif -rightDif) == 1 ) {    /*first case of rebalancing*/
+	  				if (leftDif == 3 || rightDif == 3)
+	  					return "demote";
+	  			}
+	  			if (leftDif == 2 && rightDif == 2 )
+	  				return "finished";
+	  			String side;
+	  			if (leftDif > rightDif ) {   /*checking balancing sides*/
+	  				side = "right";
+	  			}
+	  			else {
+	  				side = "left";
+	  			}
+	  			WAVLNode son;   /*the lower node needed to be checked in rebalancing cases */
+	  			if (side.equals("left")) {
+	  				son = this.left;
+	  			}
+	  			else {
+	  				son = this.right;
+	  			}
+		
+	  			int newLD = son.rank-son.left.rank;
+	  			int newRD = son.rank-son.right.rank;
+	  			if (newLD == 2 && newRD == 2) {   /*2nd case of rebalancing*/
+	  				return "doubleDemote"+side;
+	  			}
+	  			switch (side) {
+	  			case ("right"):
+	  				if (newRD == 2) {
+	  					return "doubleRotateLeft";  /*4rd case of rebalancing*/
+	  				}
+	  			return "rotateLeft";           /*3rd case of rebalancing*/
+	  			case ("left"):
+	  				if (newLD == 2) {
+	  					return "doubleRotateRight";        /*4rd case of rebalancing*/
+	  				}
+	  			return "rotateRight";           /*3rd case of rebalancing*/
+	  			}
+
+	  			return "";
+	  		}            
+	  			
+	  		    /**
+	  		     * 
+	  		     * @return key of the node. -1 if external leaf
+	  		     */
                 public int getKey()  /*return key of internal node*/
                 {
                 	if (rank == -1) {
@@ -414,6 +902,10 @@ static WAVLNode EXTLeaf;
                 		return key;
                 	}
                 }
+                /**
+                 * 
+                 * @return value of node. null if external leaf
+                 */
                 public String getValue() /*return value of internal node*/
                 {
                 	if (rank == -1) {
@@ -424,6 +916,10 @@ static WAVLNode EXTLeaf;
                 	}
 
                 }
+                /**
+                 * 
+                 * @return left children of the node. null if not existe
+                 */
                 public WAVLNode getLeft() /*return left son*/
                 {
                 	if (left == null) {
@@ -433,6 +929,10 @@ static WAVLNode EXTLeaf;
                 		return left;
                 	}
                 }
+                /**
+                 * 
+                 * @return right children of the node. null if not existe
+                 */
                 public WAVLNode getRight() /*return right son*/
                 {
                 	if (right == null) {
@@ -442,7 +942,10 @@ static WAVLNode EXTLeaf;
                 		return right;
                 	}
                 }
-                
+                /**
+                 * 
+                 * @return true if innder node. false if not
+                 */
                 public boolean isInnerNode()
                 {
                 	if (rank == -1) {
@@ -453,56 +956,21 @@ static WAVLNode EXTLeaf;
                 	}
                 }
                 	
-
+                /**
+                 * 
+                 * @return subtree size of the node. 0 if external leaf
+                 */
                 public int getSubtreeSize()
                 {
-                        return subTreeSize;
+                	if(rank==-1) {
+                		return 0;
+                	}
+                    return subTreeSize;
                 }
                 
-                
-                public int recSubTreeSize() {            /*additional recursion function to find subtreesize (dont know if needed)*/
-                	if (rank == -1) {
-                		return 0;           		
-                	}
-                	else {
-                		return 1+left.recSubTreeSize()+right.recSubTreeSize();
-                	}
-                }
   }
   
   
   
-  private static final boolean DISPLAY_SUBTREESIZE = true;
 
-		  public void display() {
-		  		display(!DISPLAY_SUBTREESIZE);
-		  	}
-
-		  	public void display(boolean displayRank) {
-		  		final int height = root.rank*2+2, width = (root.subTreeSize + 1) * 12;
-
-		  		int len = width * height * 2 + 2;
-		  		StringBuilder sb = new StringBuilder(len);
-		  		for (int i = 1; i <= len; i++)
-		  			sb.append(i < len - 2 && i % width == 0 ? "\n" : ' ');
-
-		  		displayR(sb, width / 2, 1, width / 4, width, root, " ", displayRank);
-		  		System.out.println(sb);
-		  	}
-
-		  	private void displayR(StringBuilder sb, int c, int r, int d, int w, WAVLNode n, String edge, boolean displayRank) {
-		  		if (n != null) {
-		  			displayR(sb, c - d, r + 2, d / 2, w, n.left, " /", displayRank);
-
-		  			String s = (displayRank) ? String.valueOf(n.key) + "[" + n.subTreeSize + "]" : String.valueOf(n.key) + "[" + n.rank + "]";
-		  			int idx1 = r * w + c - (s.length() + 1) / 2;
-		  			int idx2 = idx1 + s.length();
-		  			int idx3 = idx1 - w;
-		  			if (idx2 < sb.length())
-		  				sb.replace(idx1, idx2, s).replace(idx3, idx3 + 2, edge);
-
-		  			displayR(sb, c + d, r + 2, d / 2, w, n.right, "\\ ", displayRank);
-		  		}
-
-}
 }
