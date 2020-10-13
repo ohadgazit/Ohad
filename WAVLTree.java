@@ -6,7 +6,7 @@
  * (Haupler, Sen & Tarajan ‘15)
  *
  *implemented by:
- *Ohadgzit
+ *Ohad Gazit
  */
 
 public class WAVLTree {
